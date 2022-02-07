@@ -1,0 +1,41 @@
+services:
+  nginx:
+    container_name: '${APP_NAME}-nginx'
+    build: ./nginx/
+    links:
+      - php
+    ports:
+      - "8001:80"
+    volumes_from:
+      - app
+  php:
+    container_name: '${APP_NAME}-php'
+    build: ./php/
+    links:
+      - database
+    expose:
+      - 9000
+    environment:
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes_from:
+      - app
+  database:
+    image: mysql:5.7
+    container_name: '${APP_NAME}-database'
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    expose:
+      - 3306
+    volumes:
+      - /var/lib/mysql
+      - ./mysql/sql/:/docker-entrypoint-initdb.d/
+  app:
+    image: php:7.4-fpm
+    container_name: '${APP_NAME}-app'
+    volumes:
+      - ../www:/var/www/html/
+    command: "true"
